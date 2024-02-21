@@ -29,14 +29,14 @@ then
  mount -o bind /proc /mnt/temp/proc
  mount -o bind /sys /mnt/temp/sys
  rm /tmp/part-names.txt
- if [[ $2 == *[32]* ]]; then
+ if [[ $2 == *32* ]]; then
   if [ ! -d ./pkg32 ];
   then
   mkdir ./pkg32
   fi
  mount -o bind ./pkg32 /mnt/temp/var/cache/pacman/pkg
  fi
- if [[ $2 == *[64]* ]]; then
+ if [[ $2 == *64* ]]; then
   if [ ! -d ./pkg64 ];
   then
   mkdir ./pkg64
