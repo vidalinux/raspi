@@ -1,0 +1,58 @@
+#!/bin/bash
+if [ $# -eq 0 ]
+ then
+   echo "" && \
+   echo " mount:  mount image" && \
+   echo " umount: umount image" && \
+   echo "" && \
+   echo " example: ./raspimg mount 2024-02-20-aarch64.img"
+   echo ""; exit
+fi
+if [ $1 = mount ];
+then
+ if [ ! -d /mnt/temp ];
+ then
+ mkdir /mnt/temp
+ fi
+ kpartx -va $2 1> /tmp/part-names.txt
+ PART2=$(cat /tmp/part-names.txt | awk '{print $3}' | grep p2$)
+ PART1=$(cat /tmp/part-names.txt | awk '{print $3}' | grep p1$)
+ sleep 1
+ mount /dev/mapper/$PART2 /mnt/temp
+ mount /dev/mapper/$PART1 /mnt/temp/boot/
+ sleep 1
+ read -p "do you want to bind /dev /proc /sys /pkg directories now : " QUESTION
+ if [ $QUESTION = yes ];
+ then 
+ mount -o bind /dev /mnt/temp/dev
+ mount -o bind /dev/pts /mnt/temp/dev/pts
+ mount -o bind /proc /mnt/temp/proc
+ mount -o bind /sys /mnt/temp/sys
+ rm /tmp/part-names.txt
+ if [[ $2 == *[32]* ]]; then
+  if [ ! -d ./pkg32 ];
+  then
+  mkdir ./pkg32
+  fi
+ mount -o bind ./pkg32 /mnt/temp/var/cache/pacman/pkg
+ fi
+ if [[ $2 == *[64]* ]]; then
+  if [ ! -d ./pkg64 ];
+  then
+  mkdir ./pkg64
+  fi
+ mount -o bind ./pkg64 /mnt/temp/var/cache/pacman/pkg
+  fi
+ fi
+fi
+if [ $1 = umount ];
+then
+umount /mnt/temp/var/cache/pacman/pkg
+umount /mnt/temp/dev/pts
+umount /mnt/temp/dev
+umount /mnt/temp/proc -l
+umount /mnt/temp/sys
+umount /mnt/temp/boot
+umount /mnt/temp 
+kpartx -vd $2
+fi
